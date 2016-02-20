@@ -19,14 +19,6 @@ class CodeDiff:
     # difflib stuff.
     self.sm = SequenceMatcher(None, from_str, to_str)
 
-    # Pygments stuff.
-    # TODO: allow chosing of style.
-    self.style = get_style_by_name('colorful')
-
-    self.style_map = {}
-    for token_type, style in self.style:
-      self.style_map[token_type] = style
-
   def get_desc(self, for_from_str):
     descs = []
     pdesc = self.get_pygmentation_desc(for_from_str)
@@ -49,8 +41,7 @@ class CodeDiff:
       pstyle, pstart, pend = pdesc[0]
 
       # TODO: update() overwrites values for common keys, is this correct?
-      style = pstyle.copy()
-      style.update(dstyle)
+      style = pstyle + dstyle
 
       # If the token fits within the opcode region, merge the two styles.
       if dstart <= pstart and pend <= dend:
@@ -82,7 +73,8 @@ class CodeDiff:
     for token_type, token in lex(s, CLexer()):
       token_start = token_end
       token_end += len(token)
-      desc.append([self.style_map[token_type], token_start, token_end])
+      token_class = 'token-' + '-'.join(token_type).lower()
+      desc.append([[token_class], token_start, token_end])
     return desc
 
   def get_difflib_desc(self, for_from_str):
@@ -90,9 +82,9 @@ class CodeDiff:
     for s in self.sm.get_opcodes():
       opcode, from_start, from_end, to_start, to_end = s
       if for_from_str:
-        desc.append([CodeDiff.opcode_style[opcode], from_start, from_end])
+        desc.append([['opcode-' + opcode], from_start, from_end])
       else:
-        desc.append([CodeDiff.opcode_style[opcode], to_start, to_end])
+        desc.append([['opcode-' + opcode], to_start, to_end])
     return desc
 
   def to_html(self, for_from_str):
@@ -100,15 +92,7 @@ class CodeDiff:
     html = ""
     descs = self.get_desc(for_from_str)
     for style, start, end in descs:
-      span = '<span style="'
-      if style['bgcolor']:
-        span += 'background: #' + style['bgcolor'] + ';'
-
-      # TODO: maps always containing 'bgcolor' and not necessarily 'color' may
-      # by a bit confusing.
-      if ('color' in style) and style['color']:
-        span += 'color: #' + style['color'] + ';'
-      span += '">'
+      span = '<span class="' + ' '.join(style) + '">'
       fragment = (self.from_str if for_from_str else self.to_str)[start:end]
       fragment = fragment.replace('\n', '<br>')
       fragment = fragment.replace(' ', '&nbsp;')
