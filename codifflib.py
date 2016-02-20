@@ -27,9 +27,10 @@ class CodeDiff:
     for token_type, style in self.style:
       self.style_map[token_type] = style
 
-    self.descs = []
-    pdesc = self.get_pygmentation_desc()
-    ddesc = self.get_difflib_desc()
+  def get_desc(self, for_from_str):
+    descs = []
+    pdesc = self.get_pygmentation_desc(for_from_str)
+    ddesc = self.get_difflib_desc(for_from_str)
     while pdesc or ddesc:
       # The diff may be larger than the program itself.
       if not pdesc:
@@ -37,8 +38,8 @@ class CodeDiff:
 
         # Update the starting position of the diff fragment to the last
         # character descriptor in descriptor list.
-        desc[1] = self.descs[-1][2]
-        self.descs.append(desc)
+        desc[1] = descs[-1][2]
+        descs.append(desc)
         break
 
       # We have an opcode from dstart to dend.
@@ -53,7 +54,7 @@ class CodeDiff:
 
       # If the token fits within the opcode region, merge the two styles.
       if dstart <= pstart and pend <= dend:
-        self.descs.append([style, pstart, pend])
+        descs.append([style, pstart, pend])
 
         # Next token & remove the diff opcode if necessary.
         pdesc.pop(0)
@@ -61,7 +62,7 @@ class CodeDiff:
 
       # If the token doesn't fit within the opcode region, seperate it into two.
       elif dstart <= pstart and pend >= dend:
-        self.descs.append([style, pstart, dend])
+        descs.append([style, pstart, dend])
 
         # Second part of the token stays in the array.
         pdesc[0] = [style, dend, pend]
@@ -72,27 +73,33 @@ class CodeDiff:
 
     # Both arrays should be empty when the above loop finishes.
     assert (not pdesc) and (not ddesc)
+    return descs
 
-  def get_pygmentation_desc(self):
+  def get_pygmentation_desc(self, for_from_str):
     desc = []
+    s = self.from_str if for_from_str else self.to_str
     token_start = token_end = 0
-    for token_type, token in lex(self.from_str, CLexer()):
+    for token_type, token in lex(s, CLexer()):
       token_start = token_end
       token_end += len(token)
       desc.append([self.style_map[token_type], token_start, token_end])
     return desc
 
-  def get_difflib_desc(self):
+  def get_difflib_desc(self, for_from_str):
     desc = []
     for s in self.sm.get_opcodes():
       opcode, from_start, from_end, to_start, to_end = s
-      desc.append([CodeDiff.opcode_style[opcode], from_start, from_end])
+      if for_from_str:
+        desc.append([CodeDiff.opcode_style[opcode], from_start, from_end])
+      else:
+        desc.append([CodeDiff.opcode_style[opcode], to_start, to_end])
     return desc
 
-  def to_html(self):
+  def to_html(self, for_from_str):
     # TODO: don't hardcode output formatting.
     html = ""
-    for style, start, end in self.descs:
+    descs = self.get_desc(for_from_str)
+    for style, start, end in descs:
       span = '<span style="'
       if style['bgcolor']:
         span += 'background: #' + style['bgcolor'] + ';'
@@ -102,7 +109,7 @@ class CodeDiff:
       if ('color' in style) and style['color']:
         span += 'color: #' + style['color'] + ';'
       span += '">'
-      fragment = self.from_str[start:end]
+      fragment = (self.from_str if for_from_str else self.to_str)[start:end]
       fragment = fragment.replace('\n', '<br>')
       fragment = fragment.replace(' ', '&nbsp;')
       span += fragment + '</span>'
