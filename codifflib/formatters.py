@@ -4,24 +4,30 @@ import sys
 
 # TODO: requires Bootstrap, leave it as is?
 class HtmlFormatter(object):
-  def _format_line(self, line):
-    if line.fillsize:
-      return '<div class="line-filler col-md-12"><br></div>' * line.fillsize
+  class Config:
+    def __init__(self):
+      self.lineno = 1
 
-    s = '<div class="line-%s col-md-12">'
+  def _format_line(self, line, cfg):
+    if line.fillsize:
+      s = '<div><div class="idx col-md-1"> </div><div class="line-filler col-md-11"><br></div></div>'
+      return s * line.fillsize
+
+    s = '<div><div class="idx col-md-1">{0}</div><div class="line-{1} col-md-11">'
     if line.is_all_opcode_line('replace'):
-      s = s % 'replace'
+      s = s.format(cfg.lineno, 'replace')
     elif line.is_all_opcode_line('delete'):
-      s = s % 'delete'
+      s = s.format(cfg.lineno, 'delete')
     elif line.is_all_opcode_line('insert'):
-      s = s % 'insert'
+      s = s.format(cfg.lineno, 'insert')
     else:
-      s = s % 'equal'
+      s = s.format(cfg.lineno, 'equal')
+    cfg.lineno += 1
 
     for char in line.chars:
       s += self._format_char(char)
 
-    s += '</div>'
+    s += '</div></div>'
     return s
 
   def _format_char(self, char):
@@ -40,12 +46,14 @@ class HtmlFormatter(object):
   def format(self, codiff):
     s = '<div class="container"><div class="row"><div class="col-md-6"><pre>'
 
+    from_cfg = self.Config()
     for char in codiff.get_from_prog():
-      s += self._format_line(char)
+      s += self._format_line(char, from_cfg)
     s += '</pre></div><div class="col-md-6"><pre>'
 
+    to_cfg = self.Config()
     for char in codiff.get_to_prog():
-      s += self._format_line(char)
+      s += self._format_line(char, to_cfg)
     s += '</pre></div></div></div>'
     return s
 
