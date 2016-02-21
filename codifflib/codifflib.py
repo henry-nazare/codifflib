@@ -160,10 +160,10 @@ class Differ:
       if blo < bhi:
         for diff in self._replace(a, alo, ahi, b, blo, bhi):
           yield diff
-        else:
-          yield (Opcode.from_string('delete', a[alo:ahi]), [])
+      else:
+        yield (Opcode.from_lines('delete', a[alo:ahi]), [])
     elif blo < bhi:
-      yield ([], Opcode.from_string('insert', b[blo:bhi]))
+      yield ([], Opcode.from_lines('insert', b[blo:bhi]))
 
 class Pygmenter:
   def get(self, p):
