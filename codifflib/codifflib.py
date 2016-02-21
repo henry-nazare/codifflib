@@ -16,7 +16,7 @@ class Opcode(object):
 
   @staticmethod
   def from_lines(opcode, lines):
-    if opcode == 'fill':
+    if opcode.startswith('fill'):
       return [Opcode(opcode, len(lines))]
     return [Opcode(opcode, char) for line in lines for char in line]
 
@@ -25,7 +25,7 @@ class Opcode(object):
     return [Opcode(opcode, char) for char in string]
 
   def __repr__(self):
-    if self.opcode == 'fill':
+    if self.opcode.startswith('fill'):
       data = '\\n' * self.data
     elif self.data == '\n':
       data = '\\n'
@@ -54,8 +54,9 @@ class Char(object):
     return '{%s %s}' % (str(self.diff), str(self.pyg))
 
 class Line(object):
-  def __init__(self, fillsize=None):
+  def __init__(self, filltype=None, fillsize=None):
     self.chars = []
+    self.filltype = filltype
     self.fillsize = fillsize
 
   def is_all_opcode_line(self, opcode):
@@ -124,7 +125,18 @@ class Differ:
     # a[best_i] very similar to b[best_j]; eqi is None iff they're not
     # identical.
     # Pump out diffs from before the sync point.
-    yield (Opcode.from_lines('delete', a[alo:best_i]), Opcode.from_lines('insert', b[blo:best_j]))
+    linesa = a[alo:best_i]
+    linesb = b[blo:best_j]
+    yield (Opcode.from_lines('delete', linesa), Opcode.from_lines('insert', linesb))
+
+    lena = len(linesa)
+    lenb = len(linesb)
+    if lena > lenb:
+      # Fill when left delete is longer than the right insert.
+      yield ([], [Opcode('fill-insert', lena - lenb)])
+    elif lena < lenb:
+      # Fill when left delete is shorted than the right insert.
+      yield ([Opcode('fill-delete', lenb - lena)], [])
 
     aelt, belt = a[best_i], b[best_j]
     if eqi is None:
@@ -161,9 +173,11 @@ class Differ:
         for diff in self._replace(a, alo, ahi, b, blo, bhi):
           yield diff
       else:
-        yield (Opcode.from_lines('delete', a[alo:ahi]), [])
+        lines = a[alo:ahi]
+        yield (Opcode.from_lines('delete', lines), Opcode.from_lines('fill', lines))
     elif blo < bhi:
-      yield ([], Opcode.from_lines('insert', b[blo:bhi]))
+      lines = b[blo:bhi]
+      yield (Opcode.from_lines('fill', lines), Opcode.from_lines('insert', lines))
 
 class Pygmenter:
   def get(self, p):
@@ -190,7 +204,7 @@ class Codiff:
   def _gen_lines(self, diffs, pygs):
     def gen_chars():
       for char in diffs:
-        if char == None or char.opcode == 'fill':
+        if char == None or char.opcode.startswith('fill'):
           yield Char(char, None)
         else:
           pyg = pygs.next()
@@ -199,8 +213,8 @@ class Codiff:
 
     line = Line()
     for char in gen_chars():
-      if char.diff.opcode == 'fill':
-        yield Line(fillsize=char.diff.data)
+      if char.diff.opcode.startswith('fill'):
+        yield Line(filltype=char.diff.opcode, fillsize=char.diff.data)
         continue
 
       line.chars.append(char)

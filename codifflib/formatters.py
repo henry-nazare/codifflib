@@ -10,7 +10,8 @@ class HtmlFormatter(object):
 
   def _format_line(self, line, cfg):
     if line.fillsize:
-      s = '<div><div class="idx col-md-1"> </div><div class="line-filler col-md-11"><br></div></div>'
+      s = '<div><div class="idx col-md-1"> </div><div class="line-{0} col-md-11"><br></div></div>'
+      s = s.format(line.filltype)
       return s * line.fillsize
 
     s = '<div><div class="idx col-md-1">{0}</div><div class="line-{1} col-md-11">'
@@ -31,7 +32,7 @@ class HtmlFormatter(object):
     return s
 
   def _format_char(self, char):
-    assert char.diff.opcode != 'fill'
+    assert not char.diff.opcode.startswith('fill')
 
     classes = ["opcode-" + char.diff.opcode]
     if char.pyg:
