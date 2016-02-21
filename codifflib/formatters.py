@@ -6,10 +6,9 @@ import sys
 class HtmlFormatter(object):
   def _format_line(self, line):
     if line.fillsize:
-      return '<div class="grid"><div class="line-filler col-md-12"><br></div></div>' \
-          * line.fillsize
+      return '<div class="line-filler col-md-12"><br></div>' * line.fillsize
 
-    s = '<div class="grid"><div class="line-%s col-md-12">'
+    s = '<div class="line-%s col-md-12">'
     if line.is_all_opcode_line('replace'):
       s = s % 'replace'
     elif line.is_all_opcode_line('delete'):
@@ -22,7 +21,7 @@ class HtmlFormatter(object):
     for char in line.chars:
       s += self._format_char(char)
 
-    s += '</div></div>'
+    s += '</div>'
     return s
 
   def _format_char(self, char):
