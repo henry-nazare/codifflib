@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+
+  <title>Codiff</title>
+
+  <!-- JQuery source -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.0/js.cookie.js"></script>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+  <style type="text/css">
+    pre { border: 0px; border-radius: 0px; padding: 0px; }
+
+    /* md-1: index, md-6: diffs, md-11: innder diff. */
+    .col-md-1  { padding-top: 0px; padding-botton: 0px; min-height: 0px;
+                 background: rgba(0, 0, 0, .1); text-align: center; }
+    .col-md-6  { padding: 0px; min-height: 0px; }
+    .col-md-11 { padding: 0px; padding-left: 4px; min-height: 0px; }
+
+    /* Individual characters. */
+    .opcode-replace { background: rgba(255, 255, 0, .3); } /* yellow */
+    .opcode-delete  { background: rgba(255, 0, 0, .3); }   /* red    */
+    .opcode-insert  { background: rgba(0, 255, 0, .3); }   /* green */
+
+    /* Don't color opcode-xs inside line-xs. */
+    .line-delete  .opcode-delete  { background: none; }
+    .line-insert  .opcode-insert  { background: none; }
+
+    /* Diff lines. */
+    .line-replace { background: rgba(255, 255, 0, .1); } /* yellow */
+    .line-delete  { background: rgba(255, 0, 0, .1); }   /* red    */
+    .line-insert  { background: rgba(0, 255, 0, .1); }   /* green  */
+    .line-fill    { background: rgba(0, 0, 0, .1);   }   /* gray   */
+
+    /* Line index. */
+    .idx { background: rgba(0, 0, 0, .2); } /* gray */
+
+    /* Pygment style. */
+%s
+  </style>
+
+</head>
+
+<body>
+  <!-- Diff start. -->
+%s
+  <!-- Diff end. -->
+</body>
+
+</html>
